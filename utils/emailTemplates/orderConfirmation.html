@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Yoga Food Bestellbestätigung</title>
+    <style>
+      body {
+        font-family: "Poppins", sans-serif;
+        background-color: #fff8f3;
+        margin: 0;
+        padding: 0;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 40px auto;
+        background-color: #ffffff;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .header {
+        background: linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.55)),
+          url("https://firm-yellow-lw6ardpcj8.edgeone.app/banner.png")
+            center/cover no-repeat;
+        color: #fff;
+        text-align: center;
+        padding: 90px 20px;
+        position: relative;
+      }
+
+      .header h1 {
+        font-size: 30px;
+        margin: 0;
+        font-weight: 700;
+        color: #ea580c;
+        letter-spacing: 1px;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+      }
+
+      .content {
+        padding: 35px 30px;
+        text-align: center;
+        color: #333;
+      }
+
+      .content h2 {
+        color: #ea580c;
+        margin-top: 0;
+        font-size: 22px;
+        font-weight: 600;
+      }
+
+      .order-box {
+        /* Fixes from previous steps */
+        box-sizing: border-box;
+        width: 100%;
+        border: 1px solid #ea580c;
+        border-radius: 12px;
+        padding: 20px;
+        margin: 25px 0;
+        text-align: left;
+      }
+
+      .order-box table {
+        width: 100%;
+        border-collapse: collapse;
+        table-layout: fixed;
+      }
+      .order-box th,
+      .order-box td {
+        padding: 8px 10px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+        font-size: 14px;
+        word-wrap: break-word;
+      }
+      /* Styles for the key/value table (Order ID, Status, Total Amount) */
+      .order-box tr:not(:has(th[scope="col"])) th {
+        color: #ea580c;
+        width: 25%;
+      }
+      .order-box tr:not(:has(th[scope="col"])) td {
+        width: 75%;
+      }
+
+      /* Styles for the Items table to control column widths */
+      .order-box table.item-table th,
+      .order-box table.item-table td {
+        width: auto;
+      }
+      .order-box table.item-table th:nth-child(1),
+      .order-box table.item-table td:nth-child(1) {
+        width: 50%; /* Item column */
+      }
+      .order-box table.item-table th:nth-child(2),
+      .order-box table.item-table td:nth-child(2) {
+        width: 10%; /* Qty column */
+      }
+      .order-box table.item-table th:nth-child(3),
+      .order-box table.item-table td:nth-child(3),
+      .order-box table.item-table th:nth-child(4),
+      .order-box table.item-table td:nth-child(4) {
+        width: 20%; /* Price and Subtotal columns */
+        text-align: right;
+      }
+
+      .order-box h3 {
+        margin-top: 20px;
+        color: #333;
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .total {
+        text-align: right;
+        font-weight: 700;
+        margin-top: 10px;
+        font-size: 16px;
+        padding-top: 10px;
+        border-top: 1px solid #eee;
+      }
+
+      .note {
+        font-size: 14px;
+        color: #666;
+        margin-top: 10px;
+        margin-bottom: 15px;
+      }
+
+      /* UPDATED STYLE FOR CONTACT BLOCK */
+      .contact-block {
+        font-size: 14px;
+        color: #333;
+        text-align: center;
+        /* Final spacing adjustments */
+        margin: 20px 30px 10px 30px;
+        padding: 15px 0 10px 0;
+        border: 1px solid #ea580c;
+        border-radius: 12px;
+      }
+      .contact-block p {
+        margin: 3px 0;
+        line-height: 1.5;
+      }
+      .contact-block a {
+        color: #ea580c;
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .contact-block a:hover {
+        text-decoration: underline;
+      }
+      .contact-block .liefercenter-text {
+        font-weight: 700;
+      }
+
+      .footer {
+        background-color: #111;
+        text-align: center;
+        padding: 10px 15px;
+        font-size: 12px;
+        color: #ccc;
+      }
+
+      .footer a {
+        color: #ea580c;
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      .footer p {
+        margin: 4px 0;
+      }
+
+      @media (max-width: 600px) {
+        .container {
+          margin: 15px;
+        }
+        .header {
+          padding: 70px 15px;
+        }
+        .header h1 {
+          font-size: 24px;
+        }
+        .content {
+          padding: 25px 20px;
+        }
+        .order-box table.item-table th:nth-child(1),
+        .order-box table.item-table td:nth-child(1) {
+          width: 45%;
+        }
+        .order-box table.item-table th:nth-child(2),
+        .order-box table.item-table td:nth-child(2) {
+          width: 15%;
+        }
+        .contact-block {
+          margin-left: 20px;
+          margin-right: 20px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>Bestellbestätigung</h1>
+      </div>
+
+      <div class="content">
+        <h2>Hallo {{fullName}} 👋</h2>
+        <p>Vielen Dank für Ihre Bestellung! Hier sind die Details:</p>
+
+        <div class="order-box">
+          <table>
+            <tr>
+              <th>Bestellnummer</th>
+              <td>{{orderId}}</td>
+            </tr>
+            <tr>
+              <th>Gesamtbetrag</th>
+              <td>{{totalAmount}} {{currency}}</td>
+            </tr>
+          </table>
+
+          <h3>Artikel</h3>
+          <table class="item-table">
+            <thead>
+              <tr>
+                <th>Artikel</th>
+                <th>Menge</th>
+                <th style="text-align: right">Preis</th>
+                <th style="text-align: right">Zwischensumme</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{itemsRows}}
+            </tbody>
+          </table>
+
+          <p class="total">Gesamt: {{totalAmount}} {{currency}}</p>
+        </div>
+
+        <p class="note">
+          Sie erhalten eine Benachrichtigung, sobald Ihre Bestellung zur
+          Lieferung bereit ist.
+        </p>
+
+        <div class="contact-block">
+          <p>
+            Bei Fragen kontaktieren Sie bitte unser
+            <span class="liefercenter-text">24/7 Liefercenter</span>:
+          </p>
+          <p>
+            Email:
+            <a href="mailto:info@yoga-food.ch">info@yoga-food.ch</a>
+            &nbsp;|&nbsp; Telefon: <a href="tel:0445939159">044 593 91 59</a>
+          </p>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>© 2025 <b>Yoga Food</b>. Alle Rechte vorbehalten.</p>
+        <p>
+          Besuchen Sie uns auf <a href="https://yogafood.com">yogafood.com</a>
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

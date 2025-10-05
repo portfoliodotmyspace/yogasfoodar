@@ -214,7 +214,7 @@ exports.getProfile = async (req, res) => {
       address_line2: user.address_line2,
       postcode: user.postcode,
       city: user.city,
-      email: user.email,
+      contact_email: user.contact_email,
       phone: user.phone,
       ship_to_different_address: !!user.ship_to_different_address,
       order_notes: user.order_notes,
