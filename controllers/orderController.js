@@ -20,10 +20,7 @@ const formatCurrency = (amount, currency) => {
 
 const TEMPLATE_PATH = path.join(
   __dirname,
-  "..",
-  "utils",
-  "emailTemplates",
-  "orderconfirmation.html"
+  "../utils/emailTemplates/orderconfirmation.html"
 );
 const ORDER_CONFIRMATION_TEMPLATE = fs.readFileSync(TEMPLATE_PATH, "utf8");
 
