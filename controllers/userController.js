@@ -4,6 +4,8 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const logger = require("../utils/logger");
 const sendEmail = require("../utils/sendEmail");
+const fs = require("fs");
+const path = require("path");
 
 // Generate 6-digit OTP
 const generateOtp = () =>
@@ -67,12 +69,25 @@ exports.register = async (req, res) => {
       otp_expiry,
     });
 
+    // Read the HTML template
+    const templatePath = path.join(
+      __dirname,
+      "../utils/emailTemplates/otpTemplate.html"
+    );
+    let htmlTemplate = fs.readFileSync(templatePath, "utf8");
+    // Combine first and last name
+    const fullName = `${firstname} ${lastname}`;
+    // Replace placeholders
+    htmlTemplate = htmlTemplate
+      .replace("{{firstname}}", fullName)
+      .replace("{{otp}}", otp);
+
     // Send OTP email
     await sendEmail({
       to: email,
-      subject: "Your YogasFood OTP",
+      subject: "Verify Your YogasFood Account",
       text: `Your OTP is ${otp}. It will expire in 10 minutes.`,
-      html: `<p>Your OTP is <b>${otp}</b>. It will expire in 10 minutes.</p>`,
+      html: htmlTemplate,
     });
 
     res.json({
@@ -224,7 +239,7 @@ exports.getProfile = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
   try {
-    // Map database fields to user-friendly labels
+    // User-friendly labels for required fields
     const requiredFields = {
       firstname: "First Name",
       lastname: "Last Name",
@@ -232,7 +247,7 @@ exports.updateProfile = async (req, res) => {
       street_address: "Street Address",
       postcode: "Postcode / ZIP",
       city: "Town / City",
-      email: "Email Address",
+      contact_email: "Contact Email Address",
       phone: "Phone",
     };
 
@@ -259,16 +274,19 @@ exports.updateProfile = async (req, res) => {
       });
     }
 
-    // Update profile including optional fields (allow empty strings)
+    // Perform update
     const updated = await User.updateProfile(req.user.id, req.body);
+
     if (!updated) {
-      return res.json({
+      return res.status(400).json({
         isSuccess: false,
         status: 400,
         message: "No valid fields to update",
         data: null,
       });
     }
+
+    // Ensure boolean response
     updated.ship_to_different_address = Boolean(
       updated.ship_to_different_address
     );
@@ -281,7 +299,7 @@ exports.updateProfile = async (req, res) => {
     });
   } catch (err) {
     logger.error("Update profile error: %s", err.message);
-    res.json({
+    res.status(500).json({
       isSuccess: false,
       status: 500,
       message: "Failed to update profile",

@@ -137,9 +137,36 @@ exports.updateCategory = async (req, res, next) => {
   }
 };
 
-exports.deleteCategory = async (req, res, next) => {
+exports.deleteCategory = async (req, res) => {
   try {
-    await Category.remove(req.params.id);
+    const categoryId = req.params.id;
+
+    // 1️⃣ Check if category exists
+    const category = await Category.getById(categoryId);
+    if (!category) {
+      return res.status(404).json({
+        isSuccess: false,
+        status: 404,
+        message: "Category not found",
+        data: null,
+      });
+    }
+
+    // 2️⃣ Check if category is used in menu_items
+    const isUsed = await Category.isUsedInMenuItems(categoryId);
+    if (isUsed) {
+      return res.status(400).json({
+        isSuccess: false,
+        status: 400,
+        message:
+          "Cannot delete category. It is used in one or more menu items.",
+        data: null,
+      });
+    }
+
+    // 3️⃣ Safe to delete
+    await Category.remove(categoryId);
+
     res.status(200).json({
       isSuccess: true,
       status: 200,

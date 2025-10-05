@@ -35,7 +35,6 @@ const User = {
     const fields = [];
     const values = [];
 
-    // List all allowed fields
     const allowedFields = [
       "firstname",
       "lastname",
@@ -45,28 +44,27 @@ const User = {
       "address_line2",
       "postcode",
       "city",
-      "email",
+      "contact_email",
       "phone",
       "ship_to_different_address",
       "order_notes",
     ];
 
+    // Build dynamic update query
     allowedFields.forEach((field) => {
-      // For optional fields, if undefined, set empty string (or null if you prefer)
       if (data[field] !== undefined) {
         fields.push(`${field} = ?`);
         values.push(data[field]);
       } else if (
-        [
-          "companyname",
-          "address_line2",
-          "ship_to_different_address",
-          "order_notes",
-        ].includes(field)
+        ["companyname", "address_line2", "order_notes"].includes(field)
       ) {
-        // Clear optional field if not sent
+        // Optional text fields — clear when not sent
         fields.push(`${field} = ?`);
-        values.push(field === "ship_to_different_address" ? 0 : ""); // boolean default 0, others ""
+        values.push("");
+      } else if (field === "ship_to_different_address") {
+        // Optional boolean field — default to 0 (false)
+        fields.push(`${field} = ?`);
+        values.push(0);
       }
     });
 
@@ -80,12 +78,17 @@ const User = {
     );
 
     const [rows] = await db.query(
-      `SELECT id, firstname, lastname, companyname, country, street_address, address_line2, postcode, city, email, phone, ship_to_different_address, order_notes
-     FROM users WHERE id = ?`,
+      `SELECT 
+        id, firstname, lastname, companyname, country, street_address, address_line2,
+        postcode, city, email, contact_email, phone, ship_to_different_address, order_notes
+       FROM users 
+       WHERE id = ?`,
       [id]
     );
 
-    return rows[0];
+    const user = rows[0];
+    user.ship_to_different_address = Boolean(user.ship_to_different_address);
+    return user;
   },
 
   resendOtp: async (email) => {

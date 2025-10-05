@@ -30,6 +30,14 @@ const Category = {
     await db.query("DELETE FROM categories WHERE id = ?", [id]);
     return { message: "Category deleted" };
   },
+
+  isUsedInMenuItems: async (id) => {
+    const [rows] = await db.query(
+      "SELECT COUNT(*) AS count FROM menu_items WHERE category_id = ?",
+      [id]
+    );
+    return rows[0].count > 0;
+  },
 };
 
 module.exports = Category;
