@@ -72,7 +72,7 @@ exports.register = async (req, res) => {
     // Read the HTML template
     const templatePath = path.join(
       __dirname,
-      "../utils/emailTemplates/otpTemplate.html"
+      "../utils/emailTemplates/otptemplate.html"
     );
     let htmlTemplate = fs.readFileSync(templatePath, "utf8");
     // Combine first and last name
