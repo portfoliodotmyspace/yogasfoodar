@@ -3,7 +3,7 @@ const PaymentStatusModel = require("../models/paymentStatusModel");
 exports.getAllPaymentStatuses = async (req, res) => {
   try {
     const statuses = await PaymentStatusModel.getAll();
-    res.json({
+    res.status(200).json({
       isSuccess: true,
       status: 200,
       message: "Payment statuses fetched",

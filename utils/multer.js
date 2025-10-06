@@ -27,14 +27,14 @@ const handleUpload = (uploadFn) => (req, res, next) => {
   uploadFn(req, res, (err) => {
     if (err) {
       if (err.code === "LIMIT_FILE_SIZE") {
-        return res.json({
+        return res.status(400).json({
           isSuccess: false,
           status: 400,
           message: "File too large. Maximum allowed size is 5 MB.",
           data: null,
         });
       }
-      return res.json({
+      return res.status(400).json({
         isSuccess: false,
         status: 400,
         message: err.message,

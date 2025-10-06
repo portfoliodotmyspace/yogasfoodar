@@ -18,13 +18,11 @@ const formatCurrency = (amount, currency) => {
   return `${formattedAmount} ${currency}`;
 };
 
-const TEMPLATE_PATH = path.resolve(
-  process.cwd(),
-  "utils/emailTemplates/orderconfirmation.html"
+const TEMPLATE_PATH = path.join(
+  __dirname,
+  "../utils/emailTemplates/orderconfirmation.html"
 );
 const ORDER_CONFIRMATION_TEMPLATE = fs.readFileSync(TEMPLATE_PATH, "utf8");
-console.log("Resolved Template Path:", TEMPLATE_PATH);
-console.log("File Exists:", fs.existsSync(TEMPLATE_PATH));
 
 exports.createOrder = async (req, res) => {
   try {
@@ -100,7 +98,7 @@ exports.createOrder = async (req, res) => {
       });
     }
 
-    res.json({
+    res.status(200).json({
       isSuccess: true,
       status: 200,
       message: "Order created successfully",
@@ -196,7 +194,7 @@ exports.getUserOrderById = async (req, res) => {
       });
     }
 
-    res.json({
+    res.status(200).json({
       isSuccess: true,
       status: 200,
       message: "Order fetched successfully",
@@ -216,7 +214,7 @@ exports.getUserOrderById = async (req, res) => {
 exports.getCurrentAdminOrders = async (req, res) => {
   try {
     const orders = await OrderModel.getCurrentOrders();
-    res.json({
+    res.status(200).json({
       isSuccess: true,
       status: 200,
       message: "Current orders fetched successfully",
@@ -236,7 +234,7 @@ exports.getCurrentAdminOrders = async (req, res) => {
 exports.getDeliveredAdminOrders = async (req, res) => {
   try {
     const orders = await OrderModel.getDeliveredOrders();
-    res.json({
+    res.status(200).json({
       isSuccess: true,
       status: 200,
       message: "Delivered orders fetched successfully",
@@ -264,7 +262,7 @@ exports.updateOrderStatus = async (req, res) => {
       delivery_person_id
     );
 
-    res.json({
+    res.status(200).json({
       isSuccess: true,
       status: 200,
       message: "Order status updated successfully",

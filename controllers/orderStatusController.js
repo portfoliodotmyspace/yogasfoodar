@@ -3,7 +3,7 @@ const OrderStatusModel = require("../models/orderStatusModel");
 exports.getAllOrderStatuses = async (req, res) => {
   try {
     const statuses = await OrderStatusModel.getAll();
-    res.json({
+    res.status(200).json({
       isSuccess: true,
       status: 200,
       message: "Order statuses fetched",

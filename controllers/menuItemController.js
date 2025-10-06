@@ -9,7 +9,7 @@ exports.getMenuItems = async (req, res) => {
     const items = await MenuItem.getAll();
 
     if (!items || items.length === 0) {
-      return res.json({
+      return res.status(200).json({
         isSuccess: true,
         status: 200,
         message: "No menu items found",
@@ -17,7 +17,7 @@ exports.getMenuItems = async (req, res) => {
       });
     }
 
-    res.json({
+    res.status(200).json({
       isSuccess: true,
       status: 200,
       message: "Menu items fetched successfully",
@@ -47,7 +47,7 @@ exports.getMenuItem = async (req, res) => {
       });
     }
 
-    res.json({
+    res.status(200).json({
       isSuccess: true,
       status: 200,
       message: "Menu item fetched successfully",
@@ -161,7 +161,7 @@ exports.updateMenuItem = async (req, res) => {
         data: null,
       });
 
-    res.json({
+    res.status(200).json({
       isSuccess: true,
       status: 200,
       message: "Menu item updated successfully",
@@ -209,7 +209,7 @@ exports.deleteMenuItem = async (req, res) => {
 
     await MenuItem.remove(req.params.id);
 
-    res.json({
+    res.status(200).json({
       isSuccess: true,
       status: 200,
       message: "Menu item deleted successfully",

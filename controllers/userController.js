@@ -16,7 +16,7 @@ exports.register = async (req, res) => {
     const { firstname, lastname, email, password } = req.body;
 
     if (!firstname || validator.isEmpty(firstname)) {
-      return res.json({
+      return res.status(400).json({
         isSuccess: false,
         status: 400,
         message: "Firstname is required",
@@ -24,7 +24,7 @@ exports.register = async (req, res) => {
       });
     }
     if (!lastname || validator.isEmpty(lastname)) {
-      return res.json({
+      return res.status(400).json({
         isSuccess: false,
         status: 400,
         message: "Lastname is required",
@@ -32,7 +32,7 @@ exports.register = async (req, res) => {
       });
     }
     if (!email || !validator.isEmail(email)) {
-      return res.json({
+      return res.status(400).json({
         isSuccess: false,
         status: 400,
         message: "Valid email is required",
@@ -40,7 +40,7 @@ exports.register = async (req, res) => {
       });
     }
     if (!password || !validator.isLength(password, { min: 6 })) {
-      return res.json({
+      return res.status(400).json({
         isSuccess: false,
         status: 400,
         message: "Password must be at least 6 characters",
@@ -50,7 +50,7 @@ exports.register = async (req, res) => {
 
     const existing = await User.findByEmail(email);
     if (existing)
-      return res.json({
+      return res.status(400).json({
         isSuccess: false,
         status: 400,
         message: "Email already registered",
@@ -90,7 +90,7 @@ exports.register = async (req, res) => {
       html: htmlTemplate,
     });
 
-    res.json({
+    res.status(200).json({
       isSuccess: true,
       status: 200,
       message: "User registered. OTP sent to email.",
@@ -98,7 +98,7 @@ exports.register = async (req, res) => {
     });
   } catch (err) {
     logger.error("User registration error: %s", err.message);
-    res.json({
+    res.status(500).json({
       isSuccess: false,
       status: 500,
       message: "Registration failed",
@@ -111,7 +111,7 @@ exports.verifyOtp = async (req, res) => {
   try {
     const { email, otp } = req.body;
     if (!email || !otp)
-      return res.json({
+      return res.status(400).json({
         isSuccess: false,
         status: 400,
         message: "Email and OTP required",
@@ -120,14 +120,14 @@ exports.verifyOtp = async (req, res) => {
 
     const user = await User.verifyOtp(email, otp);
     if (!user)
-      return res.json({
+      return res.status(400).json({
         isSuccess: false,
         status: 400,
         message: "Invalid or expired OTP",
         data: null,
       });
 
-    res.json({
+    res.status(200).json({
       isSuccess: true,
       status: 200,
       message: "Email verified successfully",
@@ -135,7 +135,7 @@ exports.verifyOtp = async (req, res) => {
     });
   } catch (err) {
     logger.error("OTP verification error: %s", err.message);
-    res.json({
+    res.status(500).json({
       isSuccess: false,
       status: 500,
       message: "OTP verification failed",
@@ -149,14 +149,14 @@ exports.login = async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findByEmail(email);
     if (!user)
-      return res.json({
+      return res.status(400).json({
         isSuccess: false,
         status: 400,
         message: "Invalid credentials",
         data: null,
       });
     if (!user.is_verified)
-      return res.json({
+      return res.status(400).json({
         isSuccess: false,
         status: 400,
         message: "Email not verified",
@@ -165,7 +165,7 @@ exports.login = async (req, res) => {
 
     const match = await bcrypt.compare(password, user.password);
     if (!match)
-      return res.json({
+      return res.status(400).json({
         isSuccess: false,
         status: 400,
         message: "Invalid credentials",
@@ -175,7 +175,7 @@ exports.login = async (req, res) => {
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
       expiresIn: "7d",
     });
-    res.json({
+    res.status(200).json({
       isSuccess: true,
       status: 200,
       message: "Login successful",
@@ -183,7 +183,7 @@ exports.login = async (req, res) => {
     });
   } catch (err) {
     logger.error("Login error: %s", err.message);
-    res.json({
+    res.status(500).json({
       isSuccess: false,
       status: 500,
       message: "Login failed",
@@ -196,7 +196,7 @@ exports.getProfile = async (req, res) => {
   try {
     const user = await User.findByEmail(req.user.email);
     if (!user) {
-      return res.json({
+      return res.status(404).json({
         isSuccess: false,
         status: 404,
         message: "User not found",
@@ -220,7 +220,7 @@ exports.getProfile = async (req, res) => {
       order_notes: user.order_notes,
     };
 
-    res.json({
+    res.status(200).json({
       isSuccess: true,
       status: 200,
       message: "Profile fetched",
@@ -228,7 +228,7 @@ exports.getProfile = async (req, res) => {
     });
   } catch (err) {
     logger.error("Get profile error: %s", err.message);
-    res.json({
+    res.status(500).json({
       isSuccess: false,
       status: 500,
       message: "Failed to fetch profile",
@@ -291,7 +291,7 @@ exports.updateProfile = async (req, res) => {
       updated.ship_to_different_address
     );
 
-    res.json({
+    res.status(200).json({
       isSuccess: true,
       status: 200,
       message: "Profile updated successfully",
@@ -312,7 +312,7 @@ exports.resendOtp = async (req, res) => {
   try {
     const { email } = req.body;
     if (!email)
-      return res.json({
+      return res.status(400).json({
         isSuccess: false,
         status: 400,
         message: "Email is required",
@@ -321,7 +321,7 @@ exports.resendOtp = async (req, res) => {
 
     const result = await User.resendOtp(email);
     if (!result)
-      return res.json({
+      return res.status(400).json({
         isSuccess: false,
         status: 400,
         message: "Email not found",
@@ -336,7 +336,7 @@ exports.resendOtp = async (req, res) => {
       html: `<p>Your new OTP is <b>${result.otp}</b>. It will expire in 10 minutes.</p>`,
     });
 
-    res.json({
+    res.status(200).json({
       isSuccess: true,
       status: 200,
       message: "New OTP sent to email",
@@ -344,7 +344,7 @@ exports.resendOtp = async (req, res) => {
     });
   } catch (err) {
     logger.error("Resend OTP error: %s", err.message);
-    res.json({
+    res.status(500).json({
       isSuccess: false,
       status: 500,
       message: "Failed to resend OTP",

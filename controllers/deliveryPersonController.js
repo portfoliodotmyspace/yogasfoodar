@@ -4,7 +4,7 @@ exports.createDeliveryPerson = async (req, res) => {
   try {
     const { name, phone } = req.body;
     const person = await DeliveryPersonModel.create({ name, phone });
-    res.json({
+    res.status(200).json({
       isSuccess: true,
       status: 200,
       message: "Delivery person added",
@@ -23,7 +23,7 @@ exports.createDeliveryPerson = async (req, res) => {
 exports.getAllDeliveryPersons = async (req, res) => {
   try {
     const persons = await DeliveryPersonModel.getAll();
-    res.json({
+    res.status(200).json({
       isSuccess: true,
       status: 200,
       message: "Delivery persons fetched",
