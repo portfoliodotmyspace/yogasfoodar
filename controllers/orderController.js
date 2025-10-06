@@ -23,6 +23,8 @@ const TEMPLATE_PATH = path.join(
   "../utils/emailTemplates/orderconfirmation.html"
 );
 const ORDER_CONFIRMATION_TEMPLATE = fs.readFileSync(TEMPLATE_PATH, "utf8");
+console.log("Resolved Template Path:", TEMPLATE_PATH);
+console.log("File Exists:", fs.existsSync(TEMPLATE_PATH));
 
 exports.createOrder = async (req, res) => {
   try {
