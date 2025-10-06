@@ -18,9 +18,9 @@ const formatCurrency = (amount, currency) => {
   return `${formattedAmount} ${currency}`;
 };
 
-const TEMPLATE_PATH = path.join(
-  __dirname,
-  "../utils/emailTemplates/orderconfirmation.html"
+const TEMPLATE_PATH = path.resolve(
+  process.cwd(),
+  "utils/emailTemplates/orderconfirmation.html"
 );
 const ORDER_CONFIRMATION_TEMPLATE = fs.readFileSync(TEMPLATE_PATH, "utf8");
 console.log("Resolved Template Path:", TEMPLATE_PATH);
