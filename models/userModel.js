@@ -50,7 +50,6 @@ const User = {
       "order_notes",
     ];
 
-    // Build dynamic update query
     allowedFields.forEach((field) => {
       if (data[field] !== undefined) {
         fields.push(`${field} = ?`);
@@ -58,11 +57,9 @@ const User = {
       } else if (
         ["companyname", "address_line2", "order_notes"].includes(field)
       ) {
-        // Optional text fields — clear when not sent
         fields.push(`${field} = ?`);
         values.push("");
       } else if (field === "ship_to_different_address") {
-        // Optional boolean field — default to 0 (false)
         fields.push(`${field} = ?`);
         values.push(0);
       }
@@ -92,11 +89,15 @@ const User = {
   },
 
   resendOtp: async (email) => {
-    const user = await User.findByEmail(email);
+    const [rows] = await db.query(
+      "SELECT firstname, lastname, email FROM users WHERE email = ?",
+      [email]
+    );
+    const user = rows[0];
     if (!user) return null;
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otp_expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 min expiry
+    const otp_expiry = new Date(Date.now() + 10 * 60 * 1000);
 
     await db.query("UPDATE users SET otp = ?, otp_expiry = ? WHERE email = ?", [
       otp,
@@ -104,7 +105,50 @@ const User = {
       email,
     ]);
 
-    return { email, otp };
+    return { email, firstname: user.firstname, lastname: user.lastname, otp };
+  },
+
+  setResetOtp: async (email, otp, otp_expiry) => {
+    const [rows] = await db.query(
+      "SELECT id, firstname, lastname FROM users WHERE email = ?",
+      [email]
+    );
+    if (!rows[0]) return null;
+
+    await db.query("UPDATE users SET otp = ?, otp_expiry = ? WHERE email = ?", [
+      otp,
+      otp_expiry,
+      email,
+    ]);
+
+    return rows[0];
+  },
+
+  resetPassword: async (email, otp, newPassword) => {
+    // Step 1: Find user with valid OTP
+    const [rows] = await db.query(
+      "SELECT * FROM users WHERE email = ? AND otp = ? AND otp_expiry > NOW()",
+      [email, otp]
+    );
+    const user = rows[0];
+    if (!user) return null;
+
+    // Step 2: Compare new password with old password
+    const isSamePassword = await bcrypt.compare(newPassword, user.password);
+    if (isSamePassword) {
+      return { error: "SAME_PASSWORD" };
+    }
+
+    // Step 3: Hash new password
+    const hashed = await bcrypt.hash(newPassword, 10);
+
+    // Step 4: Update password & clear OTP
+    await db.query(
+      "UPDATE users SET password = ?, otp = NULL, otp_expiry = NULL WHERE email = ?",
+      [hashed, email]
+    );
+
+    return { email };
   },
 };
 

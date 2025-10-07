@@ -11,6 +11,10 @@ router.post("/resend-otp", userController.resendOtp);
 // Login
 router.post("/login", userController.login);
 
+// Forgot & Reset Password
+router.post("/forgot-password", userController.forgotPassword);
+router.post("/reset-password", userController.resetPassword);
+
 // Profile (protected routes)
 router.get("/profile", userAuth, userController.getProfile);
 router.put("/updateprofile", userAuth, userController.updateProfile);

@@ -27,7 +27,7 @@ const ORDER_CONFIRMATION_TEMPLATE = fs.readFileSync(TEMPLATE_PATH, "utf8");
 exports.createOrder = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { payment_id, payment_status_id, total_amount, currency, items } =
+    const { payment_id, payment_method, payment_status_id, total_amount, currency, items } =
       req.body;
 
     const orderId = generateOrderId();
@@ -60,6 +60,7 @@ exports.createOrder = async (req, res) => {
       order_id: orderId,
       user_id: userId,
       payment_id,
+      payment_method,
       payment_status_id,
       order_status_id: 25,
       total_amount,
@@ -81,6 +82,7 @@ exports.createOrder = async (req, res) => {
         "{{orderId}}": order.order_id,
         "{{totalAmount}}": formatCurrency(order.total_amount, order.currency),
         "{{currency}}": order.currency,
+        "{{paymentMethod}}": order.payment_method, 
         "{{itemsRows}}": itemsRowsHtml,
       };
 
@@ -113,70 +115,6 @@ exports.createOrder = async (req, res) => {
     });
   }
 };
-
-// exports.createOrder = async (req, res) => {
-//   try {
-//     const userId = req.user.id;
-//     const { payment_id, payment_status_id, total_amount, currency, items } =
-//       req.body;
-
-//     const orderId = generateOrderId();
-
-//     const order = await OrderModel.create({
-//       order_id: orderId,
-//       user_id: userId,
-//       payment_id,
-//       payment_status_id,
-//       order_status_id: 25, // Pending
-//       total_amount,
-//       currency: currency || "CHF",
-//       items,
-//       delivery_person_id: null,
-//     });
-
-//     // Fetch user email
-//     const [userRows] = await db.query("SELECT * FROM users WHERE id = ?", [
-//       userId,
-//     ]);
-
-//     if (userRows.length) {
-//       const user = userRows[0];
-//       const fullName = `${user.firstname} ${user.lastname}`;
-//       const emailHtml = `
-//         <h2>Order Confirmation</h2>
-//         <p>Hello ${fullName},</p>
-//         <p>Thank you for your order. Here are your order details:</p>
-//         <ul>
-//           <li><b>Order ID:</b> ${order.order_id}</li>
-//           <li><b>Total Amount:</b> ${order.total_amount} ${order.currency}</li>
-//         </ul>
-//         <p>Items:</p>
-//         <pre>${JSON.stringify(JSON.parse(order.items), null, 2)}</pre>
-//       `;
-
-//       await sendMail({
-//         to: user.contact_email,
-//         subject: `Your Order Confirmation - ${order.order_id}`,
-//         text: `Your order ${order.order_id} has been confirmed.`,
-//         html: emailHtml,
-//       });
-//     }
-
-//     res.json({
-//       isSuccess: true,
-//       status: 200,
-//       message: "Order created successfully",
-//       data: order,
-//     });
-//   } catch (err) {
-//     console.error(err);
-//     res.status(500).json({
-//       isSuccess: false,
-//       status: 500,
-//       message: "Failed to create order",
-//     });
-//   }
-// };
 
 // ✅ Get only current (not delivered) orders for the logged-in user
 exports.getUserOrderById = async (req, res) => {

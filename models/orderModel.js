@@ -6,6 +6,7 @@ const OrderModel = {
       "order_id",
       "user_id",
       "payment_id",
+      "payment_method",
       "payment_status_id",
       "order_status_id",
       "total_amount",

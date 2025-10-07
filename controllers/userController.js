@@ -328,12 +328,26 @@ exports.resendOtp = async (req, res) => {
         data: null,
       });
 
-    // Send OTP email
+    const { firstname, lastname, otp } = result;
+
+    const templatePath = path.join(
+      __dirname,
+      "../utils/emailTemplates/otptemplate.html"
+    );
+    let htmlTemplate = fs.readFileSync(templatePath, "utf8");
+
+    const fullName = `${firstname || "User"} ${lastname || ""}`.trim();
+
+    htmlTemplate = htmlTemplate
+      .replace("{{firstname}}", fullName)
+      .replace("{{otp}}", otp);
+
+    // ✅ Send email
     await sendEmail({
       to: email,
-      subject: "Your New OTP Code",
-      text: `Your new OTP is ${result.otp}. It will expire in 10 minutes.`,
-      html: `<p>Your new OTP is <b>${result.otp}</b>. It will expire in 10 minutes.</p>`,
+      subject: "Verify Your YogasFood Account - New OTP",
+      text: `Your new OTP is ${otp}. It will expire in 10 minutes.`,
+      html: htmlTemplate,
     });
 
     res.status(200).json({
@@ -348,6 +362,131 @@ exports.resendOtp = async (req, res) => {
       isSuccess: false,
       status: 500,
       message: "Failed to resend OTP",
+      data: null,
+    });
+  }
+};
+
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email)
+      return res.status(400).json({
+        isSuccess: false,
+        status: 400,
+        message: "Email is required",
+        data: null,
+      });
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp_expiry = new Date(Date.now() + 10 * 60 * 1000); // 10 min expiry
+
+    const user = await User.setResetOtp(email, otp, otp_expiry);
+    if (!user)
+      return res.status(404).json({
+        isSuccess: false,
+        status: 404,
+        message: "User not found with this email",
+        data: null,
+      });
+
+    // ✅ Use same template for password reset
+    const templatePath = path.join(
+      __dirname,
+      "../utils/emailTemplates/otptemplate.html"
+    );
+    let htmlTemplate = fs.readFileSync(templatePath, "utf8");
+
+    const fullName = `${user.firstname || "User"} ${
+      user.lastname || ""
+    }`.trim();
+
+    htmlTemplate = htmlTemplate
+      .replace("{{firstname}}", fullName)
+      .replace("{{otp}}", otp);
+
+    await sendEmail({
+      to: email,
+      subject: "Password Reset Request - YogasFood",
+      text: `Your password reset OTP is ${otp}. It will expire in 10 minutes.`,
+      html: htmlTemplate,
+    });
+
+    res.status(200).json({
+      isSuccess: true,
+      status: 200,
+      message: "Password reset OTP sent to email",
+      data: { email },
+    });
+  } catch (err) {
+    logger.error("Forgot password error: %s", err.message);
+    res.status(500).json({
+      isSuccess: false,
+      status: 500,
+      message: "Failed to send password reset OTP",
+      data: null,
+    });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { email, otp, newPassword } = req.body;
+
+    if (!email || !otp || !newPassword) {
+      return res.status(400).json({
+        isSuccess: false,
+        status: 400,
+        message: "Email, OTP, and new password are required",
+        data: null,
+      });
+    }
+
+    if (!validator.isLength(newPassword, { min: 6 })) {
+      return res.status(400).json({
+        isSuccess: false,
+        status: 400,
+        message: "Password must be at least 6 characters",
+        data: null,
+      });
+    }
+
+    const result = await User.resetPassword(email, otp, newPassword);
+
+    // ✅ Handle invalid/expired OTP
+    if (!result) {
+      return res.status(400).json({
+        isSuccess: false,
+        status: 400,
+        message: "Invalid or expired OTP",
+        data: null,
+      });
+    }
+
+    // 🚫 Handle same password case
+    if (result.error === "SAME_PASSWORD") {
+      return res.status(400).json({
+        isSuccess: false,
+        status: 400,
+        message: "New password must not be the same as the old password",
+        data: null,
+      });
+    }
+
+    // ✅ Success
+    res.status(200).json({
+      isSuccess: true,
+      status: 200,
+      message: "Password reset successfully",
+      data: { email },
+    });
+  } catch (err) {
+    logger.error("Reset password error: %s", err.message);
+    res.status(500).json({
+      isSuccess: false,
+      status: 500,
+      message: "Failed to reset password",
       data: null,
     });
   }
