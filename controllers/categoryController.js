@@ -1,7 +1,10 @@
 const Category = require("../models/categoryModel");
 const logger = require("../utils/logger");
+const fs = require("fs");
+const path = require("path");
 
-exports.getCategories = async (req, res, next) => {
+// 📍 Get all categories
+exports.getCategories = async (req, res) => {
   try {
     const categories = await Category.getAll();
     res.status(200).json({
@@ -21,7 +24,8 @@ exports.getCategories = async (req, res, next) => {
   }
 };
 
-exports.getCategory = async (req, res, next) => {
+// 📍 Get single category
+exports.getCategory = async (req, res) => {
   try {
     const category = await Category.getById(req.params.id);
     if (!category) {
@@ -32,7 +36,6 @@ exports.getCategory = async (req, res, next) => {
         data: null,
       });
     }
-
     res.status(200).json({
       isSuccess: true,
       status: 200,
@@ -50,9 +53,12 @@ exports.getCategory = async (req, res, next) => {
   }
 };
 
-exports.createCategory = async (req, res, next) => {
+// 📍 Create category with optional image
+exports.createCategory = async (req, res) => {
   try {
     const { name } = req.body;
+    const image = req.file ? req.file.filename : null;
+
     if (!name) {
       return res.status(400).json({
         isSuccess: false,
@@ -62,7 +68,7 @@ exports.createCategory = async (req, res, next) => {
       });
     }
 
-    // Check for duplicate
+    // Prevent duplicate
     const existing = await Category.getAll();
     if (existing.some((c) => c.name.toLowerCase() === name.toLowerCase())) {
       return res.status(400).json({
@@ -73,7 +79,7 @@ exports.createCategory = async (req, res, next) => {
       });
     }
 
-    const newCategory = await Category.create(name);
+    const newCategory = await Category.create(name, image);
     res.status(201).json({
       isSuccess: true,
       status: 201,
@@ -91,9 +97,11 @@ exports.createCategory = async (req, res, next) => {
   }
 };
 
-exports.updateCategory = async (req, res, next) => {
+exports.updateCategory = async (req, res) => {
   try {
     const { name } = req.body;
+    const categoryId = req.params.id;
+
     if (!name) {
       return res.status(400).json({
         isSuccess: false,
@@ -103,12 +111,24 @@ exports.updateCategory = async (req, res, next) => {
       });
     }
 
-    // Check for duplicate (exclude current category)
+    // 1️⃣ Check if category exists
+    const existingCategory = await Category.getById(categoryId);
+    if (!existingCategory) {
+      return res.status(404).json({
+        isSuccess: false,
+        status: 404,
+        message: "Category not found",
+        data: null,
+      });
+    }
+
+    // 2️⃣ Check for duplicate name (exclude current)
     const existing = await Category.getAll();
     if (
       existing.some(
         (c) =>
-          c.name.toLowerCase() === name.toLowerCase() && c.id != req.params.id
+          c.name.toLowerCase() === name.toLowerCase() &&
+          c.id != Number(categoryId)
       )
     ) {
       return res.status(400).json({
@@ -119,7 +139,27 @@ exports.updateCategory = async (req, res, next) => {
       });
     }
 
-    const updated = await Category.update(req.params.id, name);
+    // 3️⃣ Handle new image upload
+    let newImage = existingCategory.image; // keep old if not uploading new
+    if (req.file) {
+      newImage = req.file.filename;
+
+      // 4️⃣ Delete old image safely
+      if (existingCategory.image) {
+        const oldImagePath = path.join(
+          __dirname,
+          "../uploads",
+          existingCategory.image
+        );
+        fs.unlink(oldImagePath, (err) => {
+          if (err) console.warn("⚠️ Failed to delete old image:", err.message);
+        });
+      }
+    }
+
+    // 5️⃣ Update category record
+    const updated = await Category.update(categoryId, name, newImage);
+
     res.status(200).json({
       isSuccess: true,
       status: 200,
@@ -137,12 +177,12 @@ exports.updateCategory = async (req, res, next) => {
   }
 };
 
+// 📍 Delete category
 exports.deleteCategory = async (req, res) => {
   try {
     const categoryId = req.params.id;
-
-    // 1️⃣ Check if category exists
     const category = await Category.getById(categoryId);
+
     if (!category) {
       return res.status(404).json({
         isSuccess: false,
@@ -152,7 +192,6 @@ exports.deleteCategory = async (req, res) => {
       });
     }
 
-    // 2️⃣ Check if category is used in menu_items
     const isUsed = await Category.isUsedInMenuItems(categoryId);
     if (isUsed) {
       return res.status(400).json({
@@ -164,9 +203,7 @@ exports.deleteCategory = async (req, res) => {
       });
     }
 
-    // 3️⃣ Safe to delete
     await Category.remove(categoryId);
-
     res.status(200).json({
       isSuccess: true,
       status: 200,

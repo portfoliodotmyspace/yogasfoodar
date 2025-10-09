@@ -27,8 +27,14 @@ const ORDER_CONFIRMATION_TEMPLATE = fs.readFileSync(TEMPLATE_PATH, "utf8");
 exports.createOrder = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { payment_id, payment_method, payment_status_id, total_amount, currency, items } =
-      req.body;
+    const {
+      payment_id,
+      payment_method,
+      payment_status_id,
+      total_amount,
+      currency,
+      items,
+    } = req.body;
 
     const orderId = generateOrderId();
     const finalCurrency = currency || "CHF";
@@ -82,7 +88,7 @@ exports.createOrder = async (req, res) => {
         "{{orderId}}": order.order_id,
         "{{totalAmount}}": formatCurrency(order.total_amount, order.currency),
         "{{currency}}": order.currency,
-        "{{paymentMethod}}": order.payment_method, 
+        "{{paymentMethod}}": order.payment_method,
         "{{itemsRows}}": itemsRowsHtml,
       };
 
@@ -212,6 +218,29 @@ exports.updateOrderStatus = async (req, res) => {
       isSuccess: false,
       status: 500,
       message: "Failed to update order status",
+    });
+  }
+};
+
+exports.getUserOrders = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    const orders = await OrderModel.getUserOrdersWithExpiry(userId);
+
+    res.status(200).json({
+      isSuccess: true,
+      status: 200,
+      message: "User orders fetched successfully",
+      data: orders,
+    });
+  } catch (err) {
+    logger.error("Get user orders error: %s", err.message);
+    res.status(500).json({
+      isSuccess: false,
+      status: 500,
+      message: "Failed to fetch user orders",
+      data: null,
     });
   }
 };

@@ -2,7 +2,7 @@ const db = require("../config/db");
 
 const Category = {
   getAll: async () => {
-    const [rows] = await db.query("SELECT id, name FROM categories");
+    const [rows] = await db.query("SELECT id, name, image FROM categories");
     return rows;
   },
 
@@ -13,17 +13,22 @@ const Category = {
     return rows[0];
   },
 
-  create: async (name) => {
+  create: async (name, image) => {
+    const imagePath = image ? `/uploads/${image}` : null; // ✅ store relative path
     const [result] = await db.query(
-      "INSERT INTO categories (name) VALUES (?)",
-      [name]
+      "INSERT INTO categories (name, image) VALUES (?, ?)",
+      [name, imagePath]
     );
-    return { id: result.insertId, name };
+    return { id: result.insertId, name, image: imagePath };
   },
 
-  update: async (id, name) => {
-    await db.query("UPDATE categories SET name = ? WHERE id = ?", [name, id]);
-    return { id, name };
+  update: async (id, name, image) => {
+    await db.query("UPDATE categories SET name = ?, image = ? WHERE id = ?", [
+      name,
+      image,
+      id,
+    ]);
+    return { id, name, image };
   },
 
   remove: async (id) => {

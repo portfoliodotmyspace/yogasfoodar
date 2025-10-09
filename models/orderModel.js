@@ -113,6 +113,47 @@ const OrderModel = {
     );
     return rows[0];
   },
+
+  getUserOrdersWithExpiry: async (userId) => {
+    const [rows] = await db.query(
+      `SELECT 
+        o.*,
+        p.name AS payment_status,
+        s.name AS order_status,
+        d.name AS delivery_person_name,
+        d.phone AS delivery_person_phone
+     FROM orders o
+     LEFT JOIN payment_statuses p ON o.payment_status_id = p.id
+     LEFT JOIN order_statuses s ON o.order_status_id = s.id
+     LEFT JOIN delivery_persons d ON o.delivery_person_id = d.id
+     WHERE o.user_id = ?
+       AND (
+         s.name != 'Delivered'
+         OR (
+           s.name = 'Delivered'
+           AND o.updated_at >= DATE_SUB(NOW(), INTERVAL 1 DAY)
+         )
+       )
+     ORDER BY o.created_at DESC`,
+      [userId]
+    );
+    return rows;
+  },
+
+  getUserOrdersWithExpiry: async (userId) => {
+    const [rows] = await db.query(
+      `SELECT o.*, p.name AS payment_status, s.name AS order_status,
+              d.name AS delivery_person_name, d.phone AS delivery_person_phone
+       FROM orders o
+       LEFT JOIN payment_statuses p ON o.payment_status_id = p.id
+       LEFT JOIN order_statuses s ON o.order_status_id = s.id
+       LEFT JOIN delivery_persons d ON o.delivery_person_id = d.id
+       WHERE o.user_id = ?
+         AND DATE(o.created_at) = CURDATE()`,
+      [userId]
+    );
+    return rows;
+  },
 };
 
 module.exports = OrderModel;

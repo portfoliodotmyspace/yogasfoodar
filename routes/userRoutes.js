@@ -3,6 +3,7 @@ const router = express.Router();
 const userController = require("../controllers/userController");
 const categoryController = require("../controllers/categoryController");
 const menuItemController = require("../controllers/menuItemController");
+const orderController = require("../controllers/orderController");
 const userAuth = require("../middlewares/userAuthMiddleware");
 
 // Register & OTP
@@ -23,4 +24,6 @@ router.post("/reset-password", userController.resetPassword);
 router.get("/profile", userAuth, userController.getProfile);
 router.put("/updateprofile", userAuth, userController.updateProfile);
 
+// My Orders
+router.get("/my-orders", userAuth, orderController.getUserOrders);
 module.exports = router;
