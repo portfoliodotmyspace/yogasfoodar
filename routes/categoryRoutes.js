@@ -13,6 +13,7 @@ router.post(
   handleUpload(upload.single("image")),
   categoryController.createCategory
 );
+
 router.put(
   "/updateCategory/:id",
   verifyAdmin,

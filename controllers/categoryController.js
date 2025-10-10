@@ -2,19 +2,25 @@ const Category = require("../models/categoryModel");
 const logger = require("../utils/logger");
 const fs = require("fs");
 const path = require("path");
+const { deleteOldFile } = require("../utils/multer"); // import helper
 
 // 📍 Get all categories
 exports.getCategories = async (req, res) => {
   try {
     const categories = await Category.getAll();
+    const formatted = categories.map((cat) => ({
+      ...cat,
+      image: cat.image ? `/uploads/${cat.image}` : null, // ✅ only here
+    }));
+
     res.status(200).json({
       isSuccess: true,
       status: 200,
       message: "Categories fetched successfully",
-      data: categories,
+      data: formatted,
     });
   } catch (err) {
-    logger.error("Error fetching categories: %s", err.message);
+    console.error(err);
     res.status(500).json({
       isSuccess: false,
       status: 500,
@@ -28,14 +34,16 @@ exports.getCategories = async (req, res) => {
 exports.getCategory = async (req, res) => {
   try {
     const category = await Category.getById(req.params.id);
-    if (!category) {
+    if (!category)
       return res.status(404).json({
         isSuccess: false,
         status: 404,
         message: "Category not found",
         data: null,
       });
-    }
+
+    category.image = category.image ? `/uploads/${category.image}` : null; // ✅ only here
+
     res.status(200).json({
       isSuccess: true,
       status: 200,
@@ -43,7 +51,7 @@ exports.getCategory = async (req, res) => {
       data: category,
     });
   } catch (err) {
-    logger.error("Error fetching category: %s", err.message);
+    console.error(err);
     res.status(500).json({
       isSuccess: false,
       status: 500,
@@ -53,11 +61,11 @@ exports.getCategory = async (req, res) => {
   }
 };
 
-// 📍 Create category with optional image
+// 📍 Create category
 exports.createCategory = async (req, res) => {
   try {
     const { name } = req.body;
-    const image = req.file ? req.file.filename : null;
+    const image = req.file ? req.file.filename : null; // ✅ req.file must exist
 
     if (!name) {
       return res.status(400).json({
@@ -87,7 +95,7 @@ exports.createCategory = async (req, res) => {
       data: newCategory,
     });
   } catch (err) {
-    logger.error("Error creating category: %s", err.message);
+    console.error("Error creating category:", err);
     res.status(500).json({
       isSuccess: false,
       status: 500,
@@ -97,6 +105,7 @@ exports.createCategory = async (req, res) => {
   }
 };
 
+// 📍 Update category
 exports.updateCategory = async (req, res) => {
   try {
     const { name } = req.body;
@@ -122,10 +131,10 @@ exports.updateCategory = async (req, res) => {
       });
     }
 
-    // 2️⃣ Check for duplicate name (exclude current)
-    const existing = await Category.getAll();
+    // 2️⃣ Check for duplicate name (excluding itself)
+    const all = await Category.getAll();
     if (
-      existing.some(
+      all.some(
         (c) =>
           c.name.toLowerCase() === name.toLowerCase() &&
           c.id != Number(categoryId)
@@ -139,27 +148,18 @@ exports.updateCategory = async (req, res) => {
       });
     }
 
-    // 3️⃣ Handle new image upload
-    let newImage = existingCategory.image; // keep old if not uploading new
+    // 3️⃣ Handle image update
+    let newImage = existingCategory.image;
     if (req.file) {
-      newImage = req.file.filename;
-
-      // 4️⃣ Delete old image safely
+      // remove old one if exists
       if (existingCategory.image) {
-        const oldImagePath = path.join(
-          __dirname,
-          "../uploads",
-          existingCategory.image
-        );
-        fs.unlink(oldImagePath, (err) => {
-          if (err) console.warn("⚠️ Failed to delete old image:", err.message);
-        });
+        deleteOldFile(existingCategory.image);
       }
+      newImage = req.file.filename;
     }
 
-    // 5️⃣ Update category record
+    // 4️⃣ Update in DB
     const updated = await Category.update(categoryId, name, newImage);
-
     res.status(200).json({
       isSuccess: true,
       status: 200,
@@ -203,7 +203,13 @@ exports.deleteCategory = async (req, res) => {
       });
     }
 
+    // Delete image file safely
+    if (category.image) {
+      deleteOldFile(category.image);
+    }
+
     await Category.remove(categoryId);
+
     res.status(200).json({
       isSuccess: true,
       status: 200,

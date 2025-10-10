@@ -3,32 +3,32 @@ const db = require("../config/db");
 const Category = {
   getAll: async () => {
     const [rows] = await db.query("SELECT id, name, image FROM categories");
-    return rows;
+    return rows; // DO NOT prepend /uploads/ here
   },
 
   getById: async (id) => {
     const [rows] = await db.query("SELECT * FROM categories WHERE id = ?", [
       id,
     ]);
-    return rows[0];
+    if (!rows[0]) return null;
+    return rows[0]; // leave image as stored in DB
   },
 
-  create: async (name, image) => {
-    const imagePath = image ? `/uploads/${image}` : null; // ✅ store relative path
+  create: async (name, imageFilename) => {
     const [result] = await db.query(
       "INSERT INTO categories (name, image) VALUES (?, ?)",
-      [name, imagePath]
+      [name, imageFilename || null]
     );
-    return { id: result.insertId, name, image: imagePath };
+    return { id: result.insertId, name, image: imageFilename || null };
   },
 
-  update: async (id, name, image) => {
+  update: async (id, name, imageFilename) => {
     await db.query("UPDATE categories SET name = ?, image = ? WHERE id = ?", [
       name,
-      image,
+      imageFilename || null,
       id,
     ]);
-    return { id, name, image };
+    return { id, name, image: imageFilename || null };
   },
 
   remove: async (id) => {
@@ -44,5 +44,7 @@ const Category = {
     return rows[0].count > 0;
   },
 };
+
+module.exports = Category;
 
 module.exports = Category;

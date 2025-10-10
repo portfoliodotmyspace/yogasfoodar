@@ -50,14 +50,13 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-/**
- * Dynamic storage creation helper
- * @param {string} folderName - upload folder name (default: 'uploads')
- */
+// ✅ Create storage with auto folder creation
 const createStorage = (folderName = "uploads") =>
   multer.diskStorage({
     destination: (req, file, cb) => {
       const uploadPath = path.join(__dirname, `../${folderName}`);
+      // Ensure folder exists
+      fs.mkdirSync(uploadPath, { recursive: true });
       cb(null, uploadPath);
     },
     filename: (req, file, cb) => {
@@ -66,16 +65,13 @@ const createStorage = (folderName = "uploads") =>
     },
   });
 
-/**
- * Generic upload middleware generator
- * @param {string} folderName
- */
+// ✅ Uploader
 const makeUploader = (folderName = "uploads") => {
   const storage = createStorage(folderName);
 
   return multer({
     storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB limit
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
     fileFilter: (req, file, cb) => {
       const allowed = /jpeg|jpg|png|webp/;
       const ext = path.extname(file.originalname).toLowerCase();
@@ -85,9 +81,7 @@ const makeUploader = (folderName = "uploads") => {
   });
 };
 
-/**
- * Middleware wrapper for clean API error handling
- */
+// ✅ Handle upload errors
 const handleUpload = (uploadFn) => (req, res, next) => {
   uploadFn(req, res, (err) => {
     if (err) {
@@ -110,21 +104,24 @@ const handleUpload = (uploadFn) => (req, res, next) => {
   });
 };
 
-/**
- * Helper to safely delete an old uploaded file
- * @param {string} filename - e.g., '1738942342342-food.png'
- * @param {string} folderName - e.g., 'uploads'
- */
-const deleteOldFile = (filename, folderName = "uploads") => {
-  if (!filename) return;
-  const filePath = path.join(__dirname, `../${folderName}`, filename);
-  fs.unlink(filePath, (err) => {
-    if (err) console.warn("⚠️ Failed to delete old image:", err.message);
+// ✅ Delete old file safely
+const deleteOldFile = (filePath) => {
+  if (!filePath) return;
+  const cleanPath = filePath.startsWith("/uploads/")
+    ? filePath.replace("/uploads/", "")
+    : filePath;
+
+  const absolutePath = path.join(__dirname, "../uploads", cleanPath);
+
+  fs.unlink(absolutePath, (err) => {
+    if (err && err.code !== "ENOENT") {
+      console.warn("⚠️ Failed to delete old image:", err.message);
+    }
   });
 };
 
 module.exports = {
-  upload: makeUploader("uploads"), // default
+  upload: makeUploader("uploads"),
   makeUploader,
   handleUpload,
   deleteOldFile,

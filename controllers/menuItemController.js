@@ -1,27 +1,22 @@
 const validator = require("validator");
 const MenuItem = require("../models/menuItemModel");
+const { deleteOldFile } = require("../utils/multer");
 const logger = require("../utils/logger");
-const fs = require("fs");
-const path = require("path");
 
+// Get all menu items
 exports.getMenuItems = async (req, res) => {
   try {
     const items = await MenuItem.getAll();
-
-    if (!items || items.length === 0) {
-      return res.status(200).json({
-        isSuccess: true,
-        status: 200,
-        message: "No menu items found",
-        data: [],
-      });
-    }
+    const formatted = items.map((item) => ({
+      ...item,
+      image: item.image ? `/uploads/${item.image}` : null,
+    }));
 
     res.status(200).json({
       isSuccess: true,
       status: 200,
       message: "Menu items fetched successfully",
-      data: items,
+      data: formatted,
     });
   } catch (err) {
     logger.error("Error fetching menu items: %s", err.message);
@@ -34,18 +29,19 @@ exports.getMenuItems = async (req, res) => {
   }
 };
 
+// Get single menu item
 exports.getMenuItem = async (req, res) => {
   try {
     const item = await MenuItem.getById(req.params.id);
-
-    if (!item) {
+    if (!item)
       return res.status(404).json({
         isSuccess: false,
         status: 404,
         message: "Menu item not found",
         data: null,
       });
-    }
+
+    item.image = item.image ? `/uploads/${item.image}` : null;
 
     res.status(200).json({
       isSuccess: true,
@@ -64,10 +60,10 @@ exports.getMenuItem = async (req, res) => {
   }
 };
 
+// Create menu item
 exports.createMenuItem = async (req, res) => {
   try {
     const { name, price, currency, category_id, description } = req.body;
-    const image = req.file ? `/uploads/${req.file.filename}` : null;
 
     if (!name || validator.isEmpty(name))
       return res.status(400).json({
@@ -93,14 +89,18 @@ exports.createMenuItem = async (req, res) => {
         data: null,
       });
 
+    const imageFilename = req.file ? req.file.filename : null;
+
     const newItem = await MenuItem.create({
       name,
       price,
       currency,
       category_id,
       description: description || null,
-      image,
+      image: imageFilename,
     });
+
+    if (newItem.image) newItem.image = `/uploads/${newItem.image}`;
 
     res.status(201).json({
       isSuccess: true,
@@ -119,6 +119,7 @@ exports.createMenuItem = async (req, res) => {
   }
 };
 
+// Update menu item
 exports.updateMenuItem = async (req, res) => {
   try {
     const { name, price, currency, category_id, description } = req.body;
@@ -139,6 +140,15 @@ exports.updateMenuItem = async (req, res) => {
         data: null,
       });
 
+    const oldItem = await MenuItem.getById(req.params.id);
+    if (!oldItem)
+      return res.status(404).json({
+        isSuccess: false,
+        status: 404,
+        message: "Menu item not found",
+        data: null,
+      });
+
     const updatedData = {
       name,
       price,
@@ -148,18 +158,13 @@ exports.updateMenuItem = async (req, res) => {
     };
 
     if (req.file) {
-      updatedData.image = `/uploads/${req.file.filename}`;
+      updatedData.image = req.file.filename;
+      if (oldItem.image) deleteOldFile(oldItem.image);
     }
 
     const updatedItem = await MenuItem.update(req.params.id, updatedData);
 
-    if (!updatedItem)
-      return res.status(404).json({
-        isSuccess: false,
-        status: 404,
-        message: "Menu item not found",
-        data: null,
-      });
+    if (updatedItem.image) updatedItem.image = `/uploads/${updatedItem.image}`;
 
     res.status(200).json({
       isSuccess: true,
@@ -178,34 +183,19 @@ exports.updateMenuItem = async (req, res) => {
   }
 };
 
+// Delete menu item
 exports.deleteMenuItem = async (req, res) => {
   try {
     const item = await MenuItem.getById(req.params.id);
-    if (!item) {
+    if (!item)
       return res.status(404).json({
         isSuccess: false,
         status: 404,
         message: "Menu item not found",
         data: null,
       });
-    }
 
-    // Delete image file if exists
-    if (item.image) {
-      const filePath = path.join(
-        __dirname,
-        "..",
-        "uploads",
-        path.basename(item.image)
-      );
-      if (fs.existsSync(filePath)) {
-        try {
-          fs.unlinkSync(filePath);
-        } catch (err) {
-          logger.error("Failed to delete image file: %s", err.message);
-        }
-      }
-    }
+    if (item.image) deleteOldFile(item.image);
 
     await MenuItem.remove(req.params.id);
 

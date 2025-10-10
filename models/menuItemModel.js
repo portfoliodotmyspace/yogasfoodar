@@ -1,16 +1,6 @@
 const db = require("../config/db");
 
 const MenuItem = {
-  // getAll: async () => {
-  //   const [rows] = await db.query(
-  //     `SELECT m.id, m.name, m.price, m.currency, m.description, m.image,
-  //           c.name AS category
-  //    FROM menu_items m
-  //    LEFT JOIN categories c ON m.category_id = c.id
-  //    ORDER BY m.created_at DESC`
-  //   );
-  //   return rows;
-  // },
   getAll: async () => {
     const [rows] = await db.query(
       `SELECT 
