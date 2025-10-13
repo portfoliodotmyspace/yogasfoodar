@@ -75,8 +75,8 @@ exports.register = async (req, res) => {
     //   "../utils/emailTemplates/otptemplate.html"
     // );
     const templatePath = path.join(
-      global.__rootdir, // Use the project's absolute root
-      "utils", // Relative path from the project root
+      process.cwd(), // <--- USE CURRENT WORKING DIRECTORY (which should be /opt/render/project/src)
+      "utils",
       "emailTemplates",
       "otptemplate.html"
     );
@@ -336,9 +336,15 @@ exports.resendOtp = async (req, res) => {
 
     const { firstname, lastname, otp } = result;
 
+    // const templatePath = path.join(
+    //   __dirname,
+    //   "../utils/emailTemplates/otptemplate.html"
+    // );
     const templatePath = path.join(
-      __dirname,
-      "../utils/emailTemplates/otptemplate.html"
+      process.cwd(),
+      "utils",
+      "emailTemplates",
+      "otptemplate.html"
     );
     let htmlTemplate = fs.readFileSync(templatePath, "utf8");
 
@@ -398,9 +404,15 @@ exports.forgotPassword = async (req, res) => {
       });
 
     // ✅ Use same template for password reset
+    // const templatePath = path.join(
+    //   __dirname,
+    //   "../utils/emailTemplates/otptemplate.html"
+    // );
     const templatePath = path.join(
-      __dirname,
-      "../utils/emailTemplates/otptemplate.html"
+      process.cwd(),
+      "utils",
+      "emailTemplates",
+      "otptemplate.html"
     );
     let htmlTemplate = fs.readFileSync(templatePath, "utf8");
 
