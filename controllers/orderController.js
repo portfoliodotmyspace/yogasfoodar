@@ -18,11 +18,20 @@ const formatCurrency = (amount, currency) => {
   return `${formattedAmount} ${currency}`;
 };
 
+// ✅ Load template file safely (case-sensitive on Render)
 const TEMPLATE_PATH = path.join(
   __dirname,
   "../utils/emailTemplates/orderconfirmation.html"
 );
-const ORDER_CONFIRMATION_TEMPLATE = fs.readFileSync(TEMPLATE_PATH, "utf8");
+
+// Defensive check in case the file is missing during deployment
+let ORDER_CONFIRMATION_TEMPLATE = "";
+try {
+  ORDER_CONFIRMATION_TEMPLATE = fs.readFileSync(TEMPLATE_PATH, "utf8");
+} catch (err) {
+  console.error("❌ Email template not found at:", TEMPLATE_PATH);
+  ORDER_CONFIRMATION_TEMPLATE = "<p>Order confirmation template missing.</p>";
+}
 
 exports.createOrder = async (req, res) => {
   try {
