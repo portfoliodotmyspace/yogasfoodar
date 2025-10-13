@@ -2,8 +2,8 @@ const OrderModel = require("../models/orderModel");
 const { v4: uuidv4 } = require("uuid");
 const db = require("../config/db");
 const sendMail = require("../utils/sendEmail");
-const fs = require("fs");
 const path = require("path");
+const fs = require("fs");
 
 // Generate order ID like ORD-YYYYMMDD-RANDOM
 const generateOrderId = () => {
@@ -18,23 +18,13 @@ const formatCurrency = (amount, currency) => {
   return `${formattedAmount} ${currency}`;
 };
 
-// ✅ Load template file safely (case-sensitive on Render)
-const TEMPLATE_PATH = path.join(
-  __dirname,
-  "../utils/emailTemplates/orderconfirmation.html"
-);
-
-// Defensive check in case the file is missing during deployment
-let ORDER_CONFIRMATION_TEMPLATE = "";
-try {
-  ORDER_CONFIRMATION_TEMPLATE = fs.readFileSync(TEMPLATE_PATH, "utf8");
-} catch (err) {
-  console.error("❌ Email template not found at:", TEMPLATE_PATH);
-  ORDER_CONFIRMATION_TEMPLATE = "<p>Order confirmation template missing.</p>";
-}
-
 exports.createOrder = async (req, res) => {
   try {
+    const TEMPLATE_PATH = path.join(
+      __dirname,
+      "../utils/emailTemplates/orderconfirmation.html"
+    );
+    const ORDER_CONFIRMATION_TEMPLATE = fs.readFileSync(TEMPLATE_PATH, "utf8");
     const userId = req.user.id;
     const {
       payment_id,
