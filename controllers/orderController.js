@@ -18,7 +18,7 @@ const formatCurrency = (amount, currency) => {
   return `${formattedAmount} ${currency}`;
 };
 
-const TEMPLATE_PATH = path.join(
+const TEMPLATE_PATH = path.resolve(
   __dirname,
   "../utils/emailTemplates/orderconfirmation.html"
 );
