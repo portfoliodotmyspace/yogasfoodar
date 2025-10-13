@@ -69,10 +69,16 @@ exports.register = async (req, res) => {
       otp_expiry,
     });
 
-    // Read the HTML template
+    // // Read the HTML template
+    // const templatePath = path.join(
+    //   __dirname,
+    //   "../utils/emailTemplates/otptemplate.html"
+    // );
     const templatePath = path.join(
-      __dirname,
-      "../utils/emailTemplates/otptemplate.html"
+      global.__rootdir, // Use the project's absolute root
+      "utils", // Relative path from the project root
+      "emailTemplates",
+      "otptemplate.html"
     );
     let htmlTemplate = fs.readFileSync(templatePath, "utf8");
     // Combine first and last name

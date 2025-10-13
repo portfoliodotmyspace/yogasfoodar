@@ -9,6 +9,7 @@ const path = require("path");
 const logger = require("./utils/logger");
 const errorHandler = require("./middlewares/errorHandler");
 const routes = require("./routes");
+global.__rootdir = __dirname;
 
 const app = express();
 const PORT = process.env.PORT || 5000;
