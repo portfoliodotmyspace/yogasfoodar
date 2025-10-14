@@ -2,8 +2,8 @@ const OrderModel = require("../models/orderModel");
 const { v4: uuidv4 } = require("uuid");
 const db = require("../config/db");
 const sendMail = require("../utils/sendEmail");
-const path = require("path");
 const fs = require("fs");
+const path = require("path");
 
 // Generate order ID like ORD-YYYYMMDD-RANDOM
 const generateOrderId = () => {
@@ -18,13 +18,14 @@ const formatCurrency = (amount, currency) => {
   return `${formattedAmount} ${currency}`;
 };
 
+const TEMPLATE_PATH = path.join(
+  __dirname,
+  "../utils/emailTemplates/orderconfirmation.html"
+);
+const ORDER_CONFIRMATION_TEMPLATE = fs.readFileSync(TEMPLATE_PATH, "utf8");
+
 exports.createOrder = async (req, res) => {
   try {
-    const TEMPLATE_PATH = path.join(
-      __dirname,
-      "../utils/emailTemplates/orderconfirmation.html"
-    );
-    const ORDER_CONFIRMATION_TEMPLATE = fs.readFileSync(TEMPLATE_PATH, "utf8");
     const userId = req.user.id;
     const {
       payment_id,
