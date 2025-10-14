@@ -3,8 +3,8 @@ module.exports = {
     {
       name: "yogasfood-backend",
       script: "server.js",
-      instances: "max", // or 1 if you don’t want clustering
-      exec_mode: "cluster", // "fork" for single instance
+      instances: 1, // or 1 if you don’t want clustering
+      exec_mode: "fork", // "fork" for single instance
       watch: false, // true in dev, false in prod
       env: {
         NODE_ENV: "development",
