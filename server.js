@@ -31,7 +31,7 @@ app.get("/", (req, res) => {
 });
 // Routes
 app.use("/api/v1", routes);
-app.use("/uploads", express.static("uploads"));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/assets", express.static(path.join(__dirname, "assets")));
 
 // Error middleware
