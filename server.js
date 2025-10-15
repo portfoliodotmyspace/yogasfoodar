@@ -53,8 +53,28 @@ app.get("/", (req, res) => {
 });
 // Routes
 app.use("/api/v1", routes);
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
-app.use("/assets", express.static(path.join(__dirname, "assets")));
+// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// app.use("/assets", express.static(path.join(__dirname, "assets")));
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "uploads"), {
+    setHeaders: (res, filePath) => {
+      // Allow frontend to load images from a different origin
+      res.setHeader("Access-Control-Allow-Origin", "https://yogasfood.ch");
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    },
+  })
+);
+
+app.use(
+  "/assets",
+  express.static(path.join(__dirname, "assets"), {
+    setHeaders: (res, filePath) => {
+      res.setHeader("Access-Control-Allow-Origin", "https://yogasfood.ch");
+      res.setHeader("Cross-Origin-Resource-Policy", "cross-origin");
+    },
+  })
+);
 
 // Error middleware
 app.use(errorHandler);
